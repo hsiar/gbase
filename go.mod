@@ -4,12 +4,15 @@ go 1.22.0
 
 require (
 	github.com/beego/beego/v2 v2.2.1
+	github.com/bwmarrin/snowflake v0.3.0
 	github.com/cloudwego/hertz v0.9.0
 	github.com/emirpasic/gods v1.18.1
+	github.com/go-errors/errors v1.5.1
 	github.com/golang-module/carbon v1.7.3
 	github.com/henrylee2cn/ameda v1.4.10
 	github.com/hertz-contrib/sse v0.0.5
 	github.com/json-iterator/go v1.1.12
+	golang.org/x/image v0.18.0
 )
 
 require (

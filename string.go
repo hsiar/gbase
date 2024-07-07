@@ -4,6 +4,11 @@ import "unsafe"
 
 type String string
 
+// s必须为string
+func (this String) From(s any) String {
+	return String(s.(string))
+}
+
 func (this String) ToString() string {
 	return string(this)
 }
