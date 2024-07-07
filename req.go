@@ -26,14 +26,14 @@ func (this *Req) WithJsonHeader() *Req {
 	return this
 }
 
-func (this *Req) Send(method string, apiUrl string, params CMap) (resp *CResp) {
+func (this *Req) Send(method string, apiUrl string, params CMap) (resp *Resp) {
 	var (
 		err     error
 		respStr string
 	)
 	//this.mu.Lock()
 	//defer this.mu.Unlock()
-	resp = &CResp{}
+	resp = &Resp{}
 
 	if strings.ToLower(method) == "get" {
 		this.client = httplib.Get(apiUrl)

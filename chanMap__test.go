@@ -15,7 +15,7 @@ func TestCChanMap_CreateChan(t *testing.T) {
 	var (
 		key1, key2 int64
 		err        error
-		resp       *CResp
+		resp       *Resp
 	)
 	ccm := ChanMapInst()
 	key1, err = ccm.CreateChan()
@@ -32,7 +32,7 @@ func TestCChanMap_CreateChan(t *testing.T) {
 
 	}
 	go func() {
-		var r = &CResp{}
+		var r = &Resp{}
 		r.Code = 200
 		r.Msg = "ok"
 		r.Data = 123

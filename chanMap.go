@@ -76,11 +76,11 @@ func (this *ChanMap) DelChan(key int64) {
 
 // v2 return CResp
 // outTime,unit:ms
-func (this *ChanMap) SyncGetV2(key int64, outTime ...time.Duration) (resp *CResp, err error) {
+func (this *ChanMap) SyncGetV2(key int64, outTime ...time.Duration) (resp *Resp, err error) {
 	var (
 		realOutTime time.Duration
 	)
-	resp = &CResp{}
+	resp = &Resp{}
 	if !this.Exist(key) {
 		return nil, errors.New("not exist this chan")
 	}
