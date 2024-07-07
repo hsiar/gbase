@@ -1,0 +1,41 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.mp4
+*.mp3
+*.wav
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+go.sum
+.idea/
+bin/release/*
+bin/bak/*
+bin/3rdtools/*
+!bin/3rdtools/*.md
+bin/log/
+bin/runtime/
+bin/static/runtime/
+
+
+
+!bin/sh/*
+/upload/
+#不忽略
+!/upload/font/*
+
+!/bin/speech2txt/models/*
+!/bin/install/*
+/bin/install/
+/bin/wechat/
+/bin/speech2txt/models/
+/bin/speech2txt/media/
+/srv_video/pkg/av/media/
+/bin/static/
