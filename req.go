@@ -11,6 +11,8 @@ import (
 type Req struct {
 	client  *httplib.BeegoHTTPRequest
 	headers CMap
+	url     string
+	method  string
 }
 
 func (this *Req) WithHeaders(headers CMap) *Req {
@@ -26,40 +28,76 @@ func (this *Req) WithJsonHeader() *Req {
 	return this
 }
 
-func (this *Req) Send(method string, apiUrl string, params CMap) (resp *Resp) {
+func (this *Req) WithUrl(url string) *Req {
+	this.url = url
+	return this
+}
+
+func (this *Req) WithMethod(method string) *Req {
+	this.method = method
+	return this
+}
+
+// 依赖this.url,this.method
+func (this *Req) Build() *Req {
+	this.client = httplib.NewBeegoRequest(this.url, strings.ToUpper(this.method))
+	return this
+}
+
+// 依赖this.Build
+func (this *Req) PostFile(filePath string, key ...string) *Req {
+	reqKey := "file"
+	if len(key) > 0 {
+		reqKey = key[0]
+	}
+	this.client.PostFile(reqKey, filePath)
+	return this
+}
+
+func (this *Req) Do(params ...CMap) (resp *Resp) {
 	var (
-		err     error
-		respStr string
+		err        error
+		respStr    string
+		paramsData CMap
 	)
 	//this.mu.Lock()
 	//defer this.mu.Unlock()
 	resp = &Resp{}
+	if len(params) > 0 {
+		paramsData = params[0]
+	}
 
-	if strings.ToLower(method) == "get" {
-		this.client = httplib.Get(apiUrl)
-		params.ToUrlParamsStr()
-		for k, _ := range params {
-			this.client.Param(k, params.GetString(k))
+	if strings.ToLower(this.method) == "get" {
+		if this.client == nil {
+			this.client = httplib.Get(this.url)
 		}
+		if paramsData != nil {
+			//paramsData.ToUrlParamsStr()
+			for k, _ := range paramsData {
+				this.client.Param(k, paramsData.GetString(k))
+			}
+		}
+		//params.ToUrlParamsStr()
+		//for k, _ := range params {
+		//	this.client.Param(k, params.GetString(k))
+		//}
 		hlog.Debugf("Send GET API url:%s", this.client.GetRequest().URL)
 	} else {
-		this.client = httplib.Post(apiUrl)
-		if params != nil {
+		if this.client == nil {
+			this.client = httplib.Post(this.url)
+		}
+		if paramsData != nil {
 			bf := bytes.NewBuffer([]byte{})
 			jsonEncoder := json.NewEncoder(bf)
 			jsonEncoder.SetEscapeHTML(false)
 			_ = jsonEncoder.Encode(params)
 			this.client.Body(bf.Bytes())
-			hlog.Debugf("Send POST API url:%s,%s", apiUrl, params.ToString())
+			hlog.Debugf("Send POST API url:%s,%s", this.url, paramsData.ToString())
 		}
 	}
 	for k, _ := range this.headers {
 		this.client.Header(k, this.headers.GetString(k))
 	}
-
-	//Header("Accept", "application/json, text/javascript, */*; q=0.01").
-	//Header("Content-Type", "application/json").
-	//Header("")
 
 	respStr, err = this.client.String()
 	if err != nil {
@@ -67,11 +105,19 @@ func (this *Req) Send(method string, apiUrl string, params CMap) (resp *Resp) {
 		resp.Msg = "请求失败"
 		return
 	}
-	hlog.Debugf("%s 响应:%s", apiUrl, respStr)
+	hlog.Debugf("%s 响应:%s", this.url, respStr)
 	resp.Code = 200
 	resp.Msg = "ok"
 	resp.Data = respStr
 	return
+}
+
+// 简化版：NewReq().WithJsonHeader().Send(method,url,params)
+func (this *Req) Send(method string, apiUrl string, params CMap) (resp *Resp) {
+	this.method = method
+	this.url = apiUrl
+	this.Build()
+	return this.Do(params)
 }
 
 func NewReq() *Req {

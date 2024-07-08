@@ -12,6 +12,7 @@ require (
 	github.com/henrylee2cn/ameda v1.4.10
 	github.com/hertz-contrib/sse v0.0.5
 	github.com/json-iterator/go v1.1.12
+	github.com/pkg/errors v0.9.1
 	golang.org/x/image v0.18.0
 )
 
