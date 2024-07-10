@@ -6,6 +6,7 @@ import (
 	"github.com/beego/beego/v2/client/httplib"
 	"github.com/cloudwego/hertz/pkg/common/hlog"
 	"strings"
+	"time"
 )
 
 type Req struct {
@@ -35,6 +36,12 @@ func (this *Req) WithUrl(url string) *Req {
 
 func (this *Req) WithMethod(method string) *Req {
 	this.method = method
+	return this
+}
+
+// depend this.build
+func (this *Req) WithTimeout(seconds int) *Req {
+	this.client.SetTimeout(60*time.Second, time.Second*time.Duration(seconds))
 	return this
 }
 
