@@ -111,21 +111,20 @@ func (this *Req) Do(params ...Map) (resp *Resp) {
 			this.client = httplib.Post(this.url)
 		}
 
-		if this.IsJsonContentType() {
-			if paramsData != nil {
+		if paramsData != nil {
+			if this.IsJsonContentType() {
 				bf := bytes.NewBuffer([]byte{})
 				jsonEncoder := json.NewEncoder(bf)
 				jsonEncoder.SetEscapeHTML(false)
-				_ = jsonEncoder.Encode(params)
+				_ = jsonEncoder.Encode(paramsData)
 				this.client.Body(bf.Bytes())
-				hlog.Debugf("Send POST API url:%s,%s", this.url, paramsData.ToString())
+			} else {
+				for k, _ := range paramsData {
+					this.client.Param(k, paramsData.GetString(k))
+				}
 			}
-		} else {
-			for k, _ := range paramsData {
-				this.client.Param(k, paramsData.GetString(k))
-			}
+			hlog.Debugf("Send POST API url:%s,%s", this.url, paramsData.ToString())
 		}
-		hlog.Debugf("Send POST API url:%s,%s", this.url, paramsData.ToString())
 
 	}
 	for k, _ := range this.headers {
