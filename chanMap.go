@@ -28,39 +28,43 @@ type ChanMap struct {
 	expireTime time.Duration
 }
 
-func (this *ChanMap) CreateChan() (key int64, err error) {
-	key = this.idNode.Generate().Int64()
+func (this *ChanMap) CreateChan(inputKey ...string) (key string, err error) {
+	if len(inputKey) > 0 {
+		key = inputKey[0]
+	} else {
+		key = this.idNode.Generate().String()
+	}
 	ch := &Chan{data: make(chan any)}
 	this.list.Store(key, ch)
 	go this.autoRemoveChan(key)
 	return
 }
 
-func (this *ChanMap) autoRemoveChan(key int64) {
+func (this *ChanMap) autoRemoveChan(key string) {
 	time.Sleep(this.expireTime)
 	if _, ok := this.list.Load(key); ok {
 		this.list.Delete(key)
-		hlog.Warnf("Chan with key %d removed due to timeout", key)
+		hlog.Warnf("Chan with key %s removed due to timeout", key)
 	}
 }
 
-func (this *ChanMap) PushData(key int64, data any) {
+func (this *ChanMap) PushData(key string, data any) {
 	if ch, ok := this.list.Load(key); ok {
 		ch.(*Chan).pushData(data)
 	}
 }
 
-func (this *ChanMap) Exist(key int64) bool {
+func (this *ChanMap) Exist(key string) bool {
 	_, ok := this.list.Load(key)
 	return ok
 }
 
-func (this *ChanMap) Get(key int64) *Chan {
+func (this *ChanMap) Get(key string) *Chan {
 	item, _ := this.list.Load(key)
 	return item.(*Chan)
 }
 
-func (this *ChanMap) Del(key int64) {
+func (this *ChanMap) Del(key string) {
 	this.list.Delete(key)
 }
 
@@ -72,7 +76,7 @@ func (this *ChanMap) Size() (size int) {
 	return
 }
 
-func (this *ChanMap) SyncGet(key int64, outTime ...int64) (resp *Resp, err error) {
+func (this *ChanMap) SyncGet(key string, outTime ...int64) (resp *Resp, err error) {
 	var realOutTime time.Duration
 
 	if !this.Exist(key) {

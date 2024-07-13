@@ -13,7 +13,7 @@ import (
 
 func TestCChanMap_CreateChan(t *testing.T) {
 	var (
-		key1, key2 int64
+		key1, key2 string
 		err        error
 		resp       *Resp
 	)
