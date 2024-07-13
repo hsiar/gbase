@@ -61,17 +61,6 @@ func (this *ChanMap) Get(key int64) *Chan {
 
 func (this *ChanMap) DelChan(key int64) {
 	this.list.Remove(key)
-	//logs.Debug(this)
-
-	//if this.Exist(key) {
-	//	//cur := this.Get(key)
-	//	//cur.mu.Lock()
-	//	//close(cur.data)
-	//	//cur.mu.Unlock()
-	//	this.list.Delete(key)
-	//	logs.Debug(this)
-	//	//delete(this.list, key)
-	//}
 }
 
 // v2 return CResp
@@ -117,3 +106,16 @@ func ChanMapInst() *ChanMap {
 	}
 	return ccmInst
 }
+
+/*
+usage:
+syncKey, err := ChanMapInst().CreateChan()
+if err != nil {
+    return err
+}
+if resp, err = ccm.SyncGetV2(syncKey, 5000); err != nil {
+	hlog.Debug(err)
+} else {
+	hlog.Debug("get resp:%s", resp.ToString(resp))
+}
+*/

@@ -44,7 +44,7 @@ func TestCChanMap_CreateChan(t *testing.T) {
 	go func() {
 
 		for {
-			hlog.Debug("chanmap.list:%d", ccm.list.Size())
+			hlog.Debugf("chanmap.list:%d", ccm.list.Size())
 			time.Sleep(time.Second * 1)
 		}
 	}()
