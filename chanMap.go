@@ -1,6 +1,7 @@
 package gbase
 
 import (
+	"fmt"
 	"github.com/bwmarrin/snowflake"
 	"github.com/cloudwego/hertz/pkg/common/hlog"
 	"github.com/emirpasic/gods/maps/treemap"
@@ -11,17 +12,18 @@ import (
 )
 
 var (
+	once    sync.Once
 	ccmInst *ChanMap
 )
 
 type Chan struct {
-	mu   sync.Mutex
+	//mu   sync.Mutex //通道是并发安全的，不需要加锁
 	data chan any
 }
 
 func (this *Chan) pushData(data any) {
-	this.mu.Lock()
-	defer this.mu.Unlock()
+	//this.mu.Lock()
+	//defer this.mu.Unlock()
 	this.data <- data
 }
 
@@ -65,7 +67,7 @@ func (this *ChanMap) DelChan(key int64) {
 
 // v2 return CResp
 // outTime,unit:ms
-func (this *ChanMap) SyncGetV2(key int64, outTime ...time.Duration) (resp *Resp, err error) {
+func (this *ChanMap) SyncGetV2(key int64, outTime ...int64) (resp *Resp, err error) {
 	var (
 		realOutTime time.Duration
 	)
@@ -75,20 +77,20 @@ func (this *ChanMap) SyncGetV2(key int64, outTime ...time.Duration) (resp *Resp,
 	}
 
 	if len(outTime) == 0 {
-		realOutTime = 10 * 1000 //默认10秒
+		realOutTime = 10 * time.Second //默认10秒
 	} else {
-		realOutTime = outTime[0]
+		realOutTime = time.Duration(outTime[0]) * time.Millisecond
 	}
 
 	select {
 	case data := <-this.Get(key).data:
 		if err = resp.FromX(data); err != nil {
-			return nil, errors.New("SyncGetV2 failed,resp data is not *CResp type")
+			return nil, fmt.Errorf("SyncGetV2 failed,resp data fmt error,err:%s", err.Error())
 		}
 		hlog.Debug("resp", resp.ToString(resp))
 		this.DelChan(key)
 		return resp, nil
-	case <-time.After(realOutTime * time.Millisecond):
+	case <-time.After(realOutTime):
 		// 超时处理
 		this.DelChan(key)
 		return nil, errors.New("Timeout waiting for response")
@@ -96,15 +98,25 @@ func (this *ChanMap) SyncGetV2(key int64, outTime ...time.Duration) (resp *Resp,
 }
 
 func ChanMapInst() *ChanMap {
-	if ccmInst == nil {
+	once.Do(func() {
 		var err error
 		ccmInst = &ChanMap{}
 		if ccmInst.idNode, err = snowflake.NewNode(1); err != nil {
 			hlog.Error("ChanMapInst create snowflake node failed,err:%s", err.Error())
 		}
 		ccmInst.list = treemap.NewWith(utils.Int64Comparator)
-	}
+	})
 	return ccmInst
+
+	//if ccmInst == nil {
+	//	var err error
+	//	ccmInst = &ChanMap{}
+	//	if ccmInst.idNode, err = snowflake.NewNode(1); err != nil {
+	//		hlog.Error("ChanMapInst create snowflake node failed,err:%s", err.Error())
+	//	}
+	//	ccmInst.list = treemap.NewWith(utils.Int64Comparator)
+	//}
+	//return ccmInst
 }
 
 /*
