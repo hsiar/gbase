@@ -23,10 +23,10 @@ func TestCChanMap_CreateChan(t *testing.T) {
 	if key2, err = ccm.CreateChan(); err == nil {
 		hlog.Debug("second key:", key2)
 		go func() {
-			if resp, err = ccm.SyncGetV2(key2, 5000); err != nil {
+			if resp, err = ccm.SyncGet(key2, 5000); err != nil {
 				hlog.Debug(err)
 			} else {
-				hlog.Debug("get resp:%s", resp.ToString(resp))
+				hlog.Debugf("get resp:%s", resp.ToString(resp))
 			}
 		}()
 
@@ -44,7 +44,7 @@ func TestCChanMap_CreateChan(t *testing.T) {
 	go func() {
 
 		for {
-			hlog.Debugf("chanmap.list:%d", ccm.list.Size())
+			hlog.Debugf("chanmap.list:%d", ccm.Size())
 			time.Sleep(time.Second * 1)
 		}
 	}()
