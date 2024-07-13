@@ -43,8 +43,8 @@ func (this *Base) FromForm(child interface{}, formStr string) (err error) {
 	return
 }
 
-func (this *Base) ToCMap(child interface{}) (cm CMap) {
-	cm = CMap{}
+func (this *Base) ToMap(child interface{}) (cm Map) {
+	cm = Map{}
 	_ = cm.FromX(child)
 	return
 }

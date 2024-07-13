@@ -14,17 +14,17 @@ type StrategyContext struct {
 	strategy Strategy
 }
 
-func (c *StrategyContext) SetStrategy(strategy Strategy) {
+func (c *StrategyContext) Set(strategy Strategy) {
 	c.strategy = strategy
 }
 
-func (c *StrategyContext) ExecuteStrategy(result any, args ...any) error {
+func (c *StrategyContext) Exec(result any, args ...any) error {
 	return c.strategy.Process(result, args...)
 }
 
 /*
 usage:
   strategyContext := &StrategyContext{}
-  strategyContext.SetStrategy(&StrategyA{})
-  strategyContext.ExecuteStrategy(&result, arg1, arg2)
+  strategyContext.Set(&StrategyA{})
+  strategyContext.Exec(&result, arg1, arg2)
 */

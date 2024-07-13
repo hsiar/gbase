@@ -29,7 +29,7 @@ func (this *SSE) Pub(params ...interface{}) (err error) {
 	}
 	return this.stream.Publish(&sse.Event{
 		Event: "fail",
-		Data: CMap{
+		Data: Map{
 			"code": code,
 			"msg":  msg,
 			"data": data,
@@ -52,7 +52,7 @@ func (this *SSE) Fail(params ...interface{}) (err error) {
 	}
 	return this.stream.Publish(&sse.Event{
 		Event: "fail",
-		Data: CMap{
+		Data: Map{
 			"code": code,
 			"msg":  msg,
 		}.ToBytes(),
@@ -74,7 +74,7 @@ func (this *SSE) Success(params ...interface{}) (err error) {
 	}
 	return this.stream.Publish(&sse.Event{
 		Event: "success",
-		Data: CMap{
+		Data: Map{
 			"code": consts.StatusOK,
 			"msg":  msg,
 			"data": data,

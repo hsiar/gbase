@@ -58,7 +58,7 @@ func (this Url) Get() (resp string, err error) {
 	return httplib.Get(this.ToString()).String()
 }
 
-//func (this Url) PostJson(data CMap) (resp CMap, err error) {
+//func (this Url) PostJson(data Map) (resp Map, err error) {
 //	var respStr string
 //	respStr, err = httplib.Post(this.ToString()).
 //		Header("Accept", "application/json, text/javascript, */*; q=0.01").

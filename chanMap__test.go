@@ -38,7 +38,7 @@ func TestCChanMap_CreateChan(t *testing.T) {
 		r.Data = 123
 		time.Sleep(time.Second * 3)
 		ccm.PushData(key2, r)
-		//ccm[key2] <- a1.ToString(a1) //CMap{"fuck": "you"}
+		//ccm[key2] <- a1.ToString(a1) //Map{"fuck": "you"}
 	}()
 
 	go func() {

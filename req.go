@@ -11,12 +11,23 @@ import (
 
 type Req struct {
 	client  *httplib.BeegoHTTPRequest
-	headers CMap
+	headers Map
 	url     string
 	method  string
+
+	//1.application/json 2.application/x-www-form-urlencoded 3....
+	contentType int8
 }
 
-func (this *Req) WithHeaders(headers CMap) *Req {
+func (this *Req) GetClient() *httplib.BeegoHTTPRequest {
+	return this.client
+}
+
+func (this *Req) IsJsonContentType() bool {
+	return this.contentType == 1
+}
+
+func (this *Req) WithHeaders(headers Map) *Req {
 	for k, _ := range headers {
 		this.headers[k] = headers.GetString(k)
 	}
@@ -26,8 +37,20 @@ func (this *Req) WithHeaders(headers CMap) *Req {
 func (this *Req) WithJsonHeader() *Req {
 	this.headers["Accept"] = "application/json, text/javascript, */*; q=0.01"
 	this.headers["Content-Type"] = "application/json"
+	this.contentType = 1
 	return this
 }
+
+//func (this *Req) WithJsonHeader() *Req {
+//	this.headers["Accept"] = "application/json, text/javascript, */*; q=0.01"
+//	this.headers["Content-Type"] = "application/json"
+//	this.contentType = 2
+//	return this
+//}
+
+//func (this *Req) With(key string, value string) *Req {
+//
+//}
 
 func (this *Req) WithUrl(url string) *Req {
 	this.url = url
@@ -39,15 +62,14 @@ func (this *Req) WithMethod(method string) *Req {
 	return this
 }
 
-// depend this.build
-func (this *Req) WithTimeout(seconds int) *Req {
-	this.client.SetTimeout(60*time.Second, time.Second*time.Duration(seconds))
-	return this
-}
-
 // 依赖this.url,this.method
 func (this *Req) Build() *Req {
 	this.client = httplib.NewBeegoRequest(this.url, strings.ToUpper(this.method))
+	return this
+}
+
+func (this *Req) WithTimeout(seconds int) *Req {
+	this.client.SetTimeout(60*time.Second, time.Second*time.Duration(seconds))
 	return this
 }
 
@@ -61,11 +83,11 @@ func (this *Req) PostFile(filePath string, key ...string) *Req {
 	return this
 }
 
-func (this *Req) Do(params ...CMap) (resp *Resp) {
+func (this *Req) Do(params ...Map) (resp *Resp) {
 	var (
 		err        error
 		respStr    string
-		paramsData CMap
+		paramsData Map
 	)
 	//this.mu.Lock()
 	//defer this.mu.Unlock()
@@ -79,40 +101,45 @@ func (this *Req) Do(params ...CMap) (resp *Resp) {
 			this.client = httplib.Get(this.url)
 		}
 		if paramsData != nil {
-			//paramsData.ToUrlParamsStr()
 			for k, _ := range paramsData {
 				this.client.Param(k, paramsData.GetString(k))
 			}
 		}
-		//params.ToUrlParamsStr()
-		//for k, _ := range params {
-		//	this.client.Param(k, params.GetString(k))
-		//}
 		hlog.Debugf("Send GET API url:%s", this.client.GetRequest().URL)
-	} else {
+	} else { //post
 		if this.client == nil {
 			this.client = httplib.Post(this.url)
 		}
-		if paramsData != nil {
-			bf := bytes.NewBuffer([]byte{})
-			jsonEncoder := json.NewEncoder(bf)
-			jsonEncoder.SetEscapeHTML(false)
-			_ = jsonEncoder.Encode(params)
-			this.client.Body(bf.Bytes())
-			hlog.Debugf("Send POST API url:%s,%s", this.url, paramsData.ToString())
+
+		if this.IsJsonContentType() {
+			if paramsData != nil {
+				bf := bytes.NewBuffer([]byte{})
+				jsonEncoder := json.NewEncoder(bf)
+				jsonEncoder.SetEscapeHTML(false)
+				_ = jsonEncoder.Encode(params)
+				this.client.Body(bf.Bytes())
+				hlog.Debugf("Send POST API url:%s,%s", this.url, paramsData.ToString())
+			}
+		} else {
+			for k, _ := range paramsData {
+				this.client.Param(k, paramsData.GetString(k))
+			}
 		}
+		hlog.Debugf("Send POST API url:%s,%s", this.url, paramsData.ToString())
+
 	}
 	for k, _ := range this.headers {
 		this.client.Header(k, this.headers.GetString(k))
 	}
 
 	respStr, err = this.client.String()
+	hlog.Debugf("%s 响应:%s", this.url, respStr)
 	if err != nil {
 		resp.Code = 100
 		resp.Msg = "请求失败"
 		return
 	}
-	hlog.Debugf("%s 响应:%s", this.url, respStr)
+
 	resp.Code = 200
 	resp.Msg = "ok"
 	resp.Data = respStr
@@ -120,7 +147,7 @@ func (this *Req) Do(params ...CMap) (resp *Resp) {
 }
 
 // 简化版：NewReq().WithJsonHeader().Send(method,url,params)
-func (this *Req) Send(method string, apiUrl string, params CMap) (resp *Resp) {
+func (this *Req) Send(method string, apiUrl string, params Map) (resp *Resp) {
 	this.method = method
 	this.url = apiUrl
 	this.Build()
@@ -129,6 +156,6 @@ func (this *Req) Send(method string, apiUrl string, params CMap) (resp *Resp) {
 
 func NewReq() *Req {
 	req := &Req{}
-	req.headers = CMap{}
+	req.headers = Map{}
 	return req
 }
