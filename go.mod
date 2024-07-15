@@ -13,6 +13,7 @@ require (
 	github.com/hertz-contrib/sse v0.0.5
 	github.com/json-iterator/go v1.1.12
 	github.com/pkg/errors v0.9.1
+	golang.org/x/exp v0.0.0-20240707233637-46b078467d37
 	golang.org/x/image v0.18.0
 )
 
