@@ -14,6 +14,10 @@ type pathItem interface {
 // fmt2: ,tony,lucy,scot,
 type Path[T pathItem] string
 
+func (this Path[T]) Empty() bool {
+	return this == "" || this == ","
+}
+
 func (this Path[T]) FromString(pathStr string) Path[T] {
 	this = Path[T](pathStr)
 	return this
@@ -75,15 +79,13 @@ func (this Path[T]) MustToList() (list []T) {
 	return
 }
 
-//func (this Path[T]) FromInt64List(list []int64) Path[T] {
-//	this = Path[T](fmt.Sprintf(",%s,", util.ArrayImplode(list, ",")))
-//	return this
-//}
-//
-//func (this Path[T]) FromInt8List(list []int8) Path[T] {
-//	this = Path[T](fmt.Sprintf(",%s,", util.ArrayImplode(list, ",")))
-//	return this
-//}
+func (this Path[T]) FromList(list []T) Path[T] {
+	strList := make([]string, len(list))
+	for i, v := range list {
+		strList[i] = fmt.Sprintf("%v", v)
+	}
+	return Path[T](fmt.Sprintf(",%s,", strings.Join(strList, ",")))
+}
 
 func (this Path[T]) Has(v any) bool {
 	return InArray(v, this.MustToList())
