@@ -57,8 +57,13 @@ func (this *Time) YearEndTime() int64 {
 	return this.Cb.EndOfYear().Timestamp()
 }
 
-func NewTime() (t *Time) {
+func NewTime(ts ...int64) (t *Time) {
 	t = &Time{}
 	t.Cb = carbon.Now()
+
+	if len(ts) > 0 {
+
+		t.Cb = t.Cb.CreateFromTimestamp(ts[0])
+	}
 	return
 }
