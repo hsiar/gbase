@@ -97,3 +97,19 @@ func NewResp() (obj *Resp) {
 	obj = &Resp{}
 	return
 }
+
+func NewFailResp(code int, msg string, data ...any) (resp *Resp) {
+	resp = NewResp().WithCode(code).WithMsg(msg)
+	if len(data) > 0 {
+		resp.WithData(data[0])
+	}
+	return
+}
+
+func NewSuccessResp(code int, data any, msg ...string) (resp *Resp) {
+	resp = NewResp().WithCode(code).WithData(data)
+	if len(msg) > 0 {
+		resp.WithMsg(msg[0])
+	}
+	return
+}

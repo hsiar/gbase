@@ -17,14 +17,8 @@ type Req struct {
 
 	//1.application/json 2.application/x-www-form-urlencoded 3....
 	contentType int8
-}
 
-func (this *Req) GetClient() *httplib.BeegoHTTPRequest {
-	return this.client
-}
-
-func (this *Req) IsJsonContentType() bool {
-	return this.contentType == 1
+	timeout int
 }
 
 func (this *Req) WithHeaders(headers Map) *Req {
@@ -62,14 +56,33 @@ func (this *Req) WithMethod(method string) *Req {
 	return this
 }
 
-// 依赖this.url,this.method
-func (this *Req) Build() *Req {
-	this.client = httplib.NewBeegoRequest(this.url, strings.ToUpper(this.method))
+func (this *Req) WithTimeout(timeout int) *Req {
+	this.timeout = timeout
 	return this
 }
 
-func (this *Req) WithTimeout(seconds int) *Req {
-	this.client.SetTimeout(60*time.Second, time.Second*time.Duration(seconds))
+func (this *Req) IsJsonContentType() bool {
+	return this.contentType == 1
+}
+
+func (this *Req) IsGet() bool {
+	return strings.ToUpper(this.method) == "GET"
+}
+
+func (this *Req) IsPost() bool {
+	return strings.ToUpper(this.method) == "POST"
+}
+
+func (this *Req) GetClient() *httplib.BeegoHTTPRequest {
+	return this.client
+}
+
+// 依赖this.url,this.method
+func (this *Req) Build() *Req {
+	this.client = httplib.NewBeegoRequest(this.url, strings.ToUpper(this.method))
+	if this.timeout > 0 {
+		this.client.SetTimeout(60*time.Second, time.Second*time.Duration(this.timeout))
+	}
 	return this
 }
 
@@ -96,7 +109,8 @@ func (this *Req) Do(params ...Map) (resp *Resp) {
 		paramsData = params[0]
 	}
 
-	if strings.ToLower(this.method) == "get" {
+	switch {
+	case this.IsGet():
 		if this.client == nil {
 			this.client = httplib.Get(this.url)
 		}
@@ -106,7 +120,7 @@ func (this *Req) Do(params ...Map) (resp *Resp) {
 			}
 		}
 		hlog.Debugf("Send GET API url:%s", this.client.GetRequest().URL)
-	} else { //post
+	case this.IsPost():
 		if this.client == nil {
 			this.client = httplib.Post(this.url)
 		}
@@ -125,8 +139,11 @@ func (this *Req) Do(params ...Map) (resp *Resp) {
 			}
 			hlog.Debugf("Send POST API url:%s,%s", this.url, paramsData.ToString())
 		}
-
+	default:
+		hlog.Errorf("不支持的请求类型:%s", this.method)
+		return NewFailResp(100, "不支持的请求类型")
 	}
+
 	for k, _ := range this.headers {
 		this.client.Header(k, this.headers.GetString(k))
 	}
@@ -134,15 +151,9 @@ func (this *Req) Do(params ...Map) (resp *Resp) {
 	respStr, err = this.client.String()
 	hlog.Debugf("%s 响应:%s", this.url, respStr)
 	if err != nil {
-		resp.Code = 100
-		resp.Msg = "请求失败"
-		return
+		return NewFailResp(100, "请求失败")
 	}
-
-	resp.Code = 200
-	resp.Msg = "ok"
-	resp.Data = respStr
-	return
+	return NewSuccessResp(200, respStr, "ok")
 }
 
 // 简化版：NewReq().WithJsonHeader().Send(method,url,params)
