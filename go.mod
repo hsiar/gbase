@@ -1,4 +1,4 @@
-module github.com/hsiar/gbase
+module gitee.com/851537/gbase
 
 go 1.22.0
 
